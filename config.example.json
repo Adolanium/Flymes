@@ -1,0 +1,10 @@
+{
+  "dataset": "data/malecns-v1/prepared-full",
+  "bind": "127.0.0.1",
+  "port": 8742,
+  "mode": "REAL",
+  "seed": 7,
+  "max_steps": 18,
+  "runtime_seconds": 900,
+  "note": "Reference defaults. Configure dataset/mode/steps/port through CLI options; Hermes paths through FLYMES_HERMES_ROOT and FLYMES_HERMES_PYTHON."
+}

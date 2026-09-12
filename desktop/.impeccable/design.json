@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-11T21:07:21.4473905Z",
+  "title": "Design System: Flymes panel",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Warm ochre",
+        "tonalRamp": [
+          "oklch(15% 0.10 75)",
+          "oklch(26% 0.10 75)",
+          "oklch(38% 0.10 75)",
+          "oklch(49% 0.10 75)",
+          "oklch(61% 0.10 75)",
+          "oklch(72% 0.10 75)",
+          "oklch(84% 0.10 75)",
+          "oklch(95% 0.10 75)"
+        ]
+      },
+      "avatar-paper": {
+        "role": "neutral",
+        "displayName": "Avatar paper",
+        "tonalRamp": [
+          "oklch(15% 0.02 90)",
+          "oklch(26% 0.02 90)",
+          "oklch(38% 0.02 90)",
+          "oklch(49% 0.02 90)",
+          "oklch(61% 0.02 90)",
+          "oklch(72% 0.02 90)",
+          "oklch(84% 0.02 90)",
+          "oklch(95% 0.02 90)"
+        ]
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "description": "Authored movement maps six software actions. Automatic motion requires a connected running state. Pause and reduced motion hold the pose. Clearly labeled local previews do not change the run.",
+        "name": "Action avatar"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "340px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary control",
+      "kind": "button",
+      "description": "Prepare or resume the controller.",
+      "html": "<button class=\"ds-primary\">Prepare run</button>",
+      "css": ".ds-primary{font:13px/1.5 var(--font-sans,Segoe UI,sans-serif);color:var(--ui-text-primary,#f0eee8);border:1px solid var(--ui-stroke-primary,#41444a);border-radius:5px;min-height:36px;padding:6px 10px;background:transparent;background:#dfb476;border-color:#dfb476;color:#17191b;font-weight:600}.ds-primary:hover:not(:disabled){background:#edc68f}.ds-primary:focus-visible{outline:2px solid #dfb476;outline-offset:3px}.ds-primary:disabled{opacity:.4;cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary control",
+      "kind": "button",
+      "description": "Pause, step, or stop.",
+      "html": "<button class=\"ds-secondary\">Stop</button>",
+      "css": ".ds-secondary{font:13px/1.5 var(--font-sans,Segoe UI,sans-serif);color:var(--ui-text-primary,#f0eee8);border:1px solid var(--ui-stroke-primary,#41444a);border-radius:5px;min-height:36px;padding:6px 10px;background:transparent;}.ds-secondary:hover:not(:disabled){background:var(--ui-stroke-primary,#41444a)}.ds-secondary:focus-visible{outline:2px solid #dfb476;outline-offset:3px}.ds-secondary:disabled{opacity:.4;cursor:not-allowed}"
+    },
+    {
+      "name": "Checkpoint field",
+      "kind": "input",
+      "description": "Explicitly labeled identifier.",
+      "html": "<label class=\"ds-label\">Checkpoint ID<input class=\"ds-input\" placeholder=\"Returned by checkpoint\"></label>",
+      "css": ".ds-label{font:13px/1.5 var(--font-sans,Segoe UI,sans-serif);color:var(--ui-text-primary,#f0eee8);display:block}.ds-input{font:13px/1.5 var(--font-sans,Segoe UI,sans-serif);color:var(--ui-text-primary,#f0eee8);border:1px solid var(--ui-stroke-primary,#41444a);border-radius:5px;min-height:36px;padding:6px 10px;background:transparent;display:block;width:100%;margin-top:5px}.ds-input::placeholder{color:var(--ui-text-secondary,#bcbdbb)}.ds-input:focus-visible{outline:2px solid #dfb476;outline-offset:3px}"
+    },
+    {
+      "name": "Technical disclosure",
+      "kind": "custom",
+      "description": "Measurements below the main decision.",
+      "html": "<details class=\"ds-details\"><summary>How this action was selected</summary><p>Relative neural readouts, not confidence.</p></details>",
+      "css": ".ds-details{font:13px/1.5 var(--font-sans,Segoe UI,sans-serif);color:var(--ui-text-primary,#f0eee8);}.ds-details summary{cursor:pointer;font-weight:500;min-height:30px}.ds-details summary:focus-visible{outline:2px solid #dfb476;outline-offset:3px}.ds-details p{font-size:11px;color:var(--ui-text-secondary,#bcbdbb)}"
+    },
+    {
+      "name": "Recorded state",
+      "kind": "custom",
+      "description": "Source label for replay telemetry.",
+      "html": "<span class=\"ds-state\">RECORDED REPLAY</span>",
+      "css": ".ds-state{font:600 10px/1.5 var(--font-mono,Consolas,monospace);letter-spacing:.07em;color:#dfb476}"
+    }
+  ],
+  "narrative": {
+    "overview": "The panel remains an operating instrument beside a transcript. An articulated fruit-fly avatar illustrates the selected action; a large selected-action label explains the controller's latest decision. Technical measurements remain accessible through disclosures.\n\nThe browser harness uses the same component and CSS, identifies itself as a harness, and accepts exported real state or replay files. It does not ship invented run data.",
+    "keyCharacteristics": [],
+    "rules": [],
+    "dos": [
+      "Do inherit host typography, surfaces, and text colors.",
+      "Do label recordings and missing measurements explicitly.",
+      "Do keep the fly recognizable and the selected action easy to read.",
+      "Do keep technical evidence accessible through disclosures."
+    ],
+    "donts": [
+      "Don't imply anatomical coordinates or full simulation coverage from a schematic sample.",
+      "Don't present authored avatar motion as measured neural motor output."
+    ]
+  }
+}

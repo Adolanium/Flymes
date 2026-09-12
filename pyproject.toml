@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flymes"
+version = "0.1.0"
+description = "Connectome-derived supervisory experiments for Hermes Desktop"
+requires-python = ">=3.11,<3.14"
+dependencies = ["numpy==2.2.6", "scipy==1.15.3", "requests==2.32.5", "pyarrow==20.0.0", "fastapi==0.115.12", "uvicorn==0.34.3", "pydantic==2.11.7", "psutil==7.0.0", "PyYAML==6.0.3"]
+
+[project.optional-dependencies]
+test = ["pytest==8.4.1", "httpx==0.28.1"]
+
+[project.scripts]
+flymes = "flymes.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["flymes*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: requires real Hermes credentials and real data", "full: full MaleCNS dataset"]

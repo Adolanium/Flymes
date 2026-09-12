@@ -1,0 +1,43 @@
+import {createRequire} from 'node:module'
+import {pathToFileURL} from 'node:url'
+import {resolve} from 'node:path'
+import assert from 'node:assert/strict'
+const require=createRequire('C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/package.json')
+const {chromium}=require('playwright')
+const browser=await chromium.launch({headless:true,args:['--allow-file-access-from-files']})
+const context=await browser.newContext({viewport:{width:440,height:960},recordVideo:{dir:'desktop/review/motion-video',size:{width:440,height:960}}})
+const page=await context.newPage()
+page.on('pageerror',e=>{throw e})
+await page.goto(pathToFileURL(resolve('desktop/harness.html')).href)
+await page.getByRole('button',{name:'Built-in demo',exact:true}).click()
+// Hide only harness instructions so the recording frames the actual panel.
+await page.addStyleTag({content:'body>main>aside{display:none!important}#root{height:100vh!important}'})
+await page.getByText('Try the movements',{exact:true}).click()
+for(const action of ['search','inspect','implement','test','review','finish']) {
+  await page.getByRole('button',{name:action,exact:true}).click()
+  const canvas=page.locator('.fm-avatar-stage canvas')
+  await page.waitForTimeout(250)
+  const before=await canvas.evaluate(c=>c.toDataURL())
+  await page.waitForTimeout(700)
+  const after=await canvas.evaluate(c=>c.toDataURL())
+  assert.notEqual(before,after,`${action} must animate`)
+  await page.locator('.fm-avatar').screenshot({path:`desktop/review/motion-${action}.png`})
+  console.log(action,'animates')
+}
+await page.getByRole('button',{name:'Pause motion',exact:true}).click()
+await page.waitForTimeout(100)
+const frozen=await page.locator('.fm-avatar-stage canvas').evaluate(c=>c.toDataURL())
+await page.waitForTimeout(200)
+assert.equal(await page.locator('.fm-avatar-stage canvas').evaluate(c=>c.toDataURL()),frozen)
+await page.getByRole('button',{name:'Play motion',exact:true}).click()
+await page.emulateMedia({reducedMotion:'reduce'})
+await page.waitForTimeout(100)
+const reduced=await page.locator('.fm-avatar-stage canvas').evaluate(c=>c.toDataURL())
+await page.waitForTimeout(200)
+assert.equal(await page.locator('.fm-avatar-stage canvas').evaluate(c=>c.toDataURL()),reduced)
+await page.setViewportSize({width:320,height:900})
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false)
+console.log('Pause and reduced motion freeze frames; narrow layout fits')
+await context.close()
+console.log('Video',await page.video().path())
+await browser.close()
