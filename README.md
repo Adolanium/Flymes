@@ -12,11 +12,11 @@ Hermes proposes the actions. A simulation built from real fruit fly connectivity
 selects one. Watch the decision, pause before execution, and compare what changes
 when you alter the circuit.
 
-<sub>POWERED BY <a href="https://github.com/NousResearch/hermes-agent">HERMES AGENT</a> &nbsp;·&nbsp; COMMUNITY EXPERIMENT &nbsp;·&nbsp; VERSION 0.2.0</sub>
+<sub>POWERED BY <a href="https://github.com/NousResearch/hermes-agent">HERMES AGENT</a> &nbsp;·&nbsp; COMMUNITY EXPERIMENT &nbsp;·&nbsp; VERSION 0.3.0</sub>
 
 <br /><br />
 
-[See what it does](#a-circuit-in-the-conversation) &nbsp;·&nbsp; [Install](#install) &nbsp;·&nbsp; [Measured results](#what-the-experiment-shows) &nbsp;·&nbsp; [How it works](docs/modeling.md)
+[See what it does](#a-circuit-in-the-conversation) &nbsp;·&nbsp; [Try the arena](#a-world-without-an-llm) &nbsp;·&nbsp; [Install](#install) &nbsp;·&nbsp; [Measured results](#what-the-experiment-shows)
 
 </div>
 
@@ -64,6 +64,26 @@ directory guides Hermes; it is not a filesystem sandbox.
 
 See [native mode](docs/native-mode.md) for interventions, session compression,
 offline recovery, and the limits of the tool gate.
+
+## A world without an LLM
+
+Open **Arena** to watch a controller forage in a small seeded world. Food restores
+energy, every move spends it, and the episode records what actually happened.
+The connectome chooses from six actions using scent and obstacle signals.
+There are no language-model calls or model-generated proposals.
+
+Compare the original wiring with rewired, nonrecurrent, and lesioned controls,
+plus greedy and random baselines. Each controller starts on the same worlds.
+Pause a live run, replay any completed episode, and export its measurements.
+Baselines work without a dataset; neural modes use your prepared MaleCNS graph.
+The sensory mappings are engineered and untrained, so useful behavior is a result
+to measure, not an assumption.
+
+[Arena setup and experimental protocol](docs/arena.md).
+
+In the [first three-world pilot](docs/arena-results.md), the greedy baseline
+averaged 4 of 7 food sites, random averaged 0.33, and all four untrained neural
+conditions collected none. The report and a connectome replay preserve that result.
 
 ## Install
 
@@ -137,11 +157,15 @@ From the source repository:
 uv sync --frozen --extra test
 uv run pytest -q -m "not live and not full"
 node --test desktop/plugin.test.mjs
+node desktop/build-harness.mjs
+node desktop/arena.browser.test.mjs
 python scripts/build_catalog.py
 python scripts/build_catalog.py --check
 ```
 
 The default tests use temporary state and test doubles without calling a provider.
+The browser test additionally needs `npm ci` and `npx playwright install chromium`
+from `desktop/`. It exercises the real companion through a temporary test proxy.
 The live test requires an explicit opt-in. The Desktop artifact is
 `desktop/plugin.js`; the optional [browser replay harness](docs/desktop.md) needs
 its own development build. See [catalog preparation](docs/catalog.md) for the

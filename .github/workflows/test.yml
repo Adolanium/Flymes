@@ -12,4 +12,10 @@ jobs:
         with:
           node-version: '22'
       - run: node --test desktop/plugin.test.mjs
+      - run: npm ci
+        working-directory: desktop
+      - run: npx playwright install chromium
+        working-directory: desktop
+      - run: node desktop/build-harness.mjs
+      - run: node desktop/arena.browser.test.mjs
       - run: uv run python scripts/build_catalog.py --check

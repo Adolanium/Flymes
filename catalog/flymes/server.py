@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from flymes.runner import Runner
 from flymes.native_controller import NativeController
+from flymes.arena import Arena
 
 
 class Control(BaseModel):
@@ -27,11 +28,27 @@ class Control(BaseModel):
     reason: str | None = Field(None, max_length=120)
 
 
+ArenaMode = Literal['REAL', 'SHUFFLED', 'SILENCED', 'LESIONED', 'GREEDY', 'RANDOM']
+
+
+class ArenaCommand(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    command: Literal['run', 'compare', 'pause', 'resume', 'stop']
+    mode: ArenaMode = 'GREEDY'
+    modes: list[ArenaMode] = Field(default_factory=lambda: ['GREEDY', 'RANDOM'], max_length=6)
+    seed: int = Field(7, ge=0, le=2**32 - 11)
+    seeds: int = Field(3, ge=1, le=10)
+    max_steps: int = Field(60, ge=10, le=120)
+    circuit_seed: int = Field(7, ge=0, le=2**32 - 1)
+    lesion_percent: int = Field(30, ge=0, le=100)
+
+
 def create_app(root: Path, dataset: Path, token: str, runner=None, *, state_root=None):
     if len(token) < 32:
         raise ValueError("A random control token of at least 32 characters is required")
     engine = runner or Runner(root, dataset, state_root=state_root)
     native = NativeController(root, dataset, state_root=state_root)
+    arena = Arena(dataset, Path(state_root or root) / '.flymes' / 'arena')
 
     async def authorize(request: Request, authorization: str = Header(default="")):
         # A native proxy has no browser origin. Browsers must go through Hermes.
@@ -54,11 +71,47 @@ def create_app(root: Path, dataset: Path, token: str, runner=None, *, state_root
         yield
         watch.cancel()
         await engine.stop("backend shutdown")
+        await arena.close()
 
     app = FastAPI(title="Flymes loopback companion", lifespan=lifespan,
                   dependencies=[Depends(authorize)], docs_url=None, redoc_url=None, openapi_url=None)
     app.state.runner = engine
     app.state.native = native
+    app.state.arena = arena
+
+    @app.get('/arena/state')
+    async def arena_state():
+        arena.lease = time.monotonic()
+        return arena.snapshot()
+
+    @app.post('/arena')
+    async def arena_command(body: ArenaCommand):
+        try:
+            if body.command in ('run', 'compare') and (engine.state['status'] == 'running' or native.status not in ('disabled', 'released')):
+                raise ValueError('Stop the built-in demo and return control to Hermes before starting the arena')
+            return await arena.control(body)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get('/arena/report')
+    async def arena_report():
+        if arena.report is None:
+            raise HTTPException(409, 'Finish or stop an experiment before exporting its report')
+        return arena.report
+
+    @app.get('/arena/replay/{seed}/{mode}')
+    async def arena_replay(seed: int, mode: ArenaMode):
+        if not any(row['seed'] == seed and row['mode'] == mode for row in arena.state['rows']):
+            raise HTTPException(404, 'Episode is not available in this experiment')
+        path = arena.output / arena.state['run_id'] / f'{seed}-{mode}.json'
+        try:
+            replay = await asyncio.to_thread(lambda: json.loads(path.read_text(encoding='utf-8')))
+        except OSError as exc:
+            raise HTTPException(409, 'Episode recording could not be read') from exc
+        # Full sensory evidence stays on disk; keep the Desktop transport compact.
+        replay['frames'] = [{key: value for key, value in frame.items() if key not in ('sensors', 'valid_actions')}
+                            for frame in replay['frames']]
+        return replay
 
     @app.get('/native/state')
     async def native_state():
@@ -73,8 +126,8 @@ def create_app(root: Path, dataset: Path, token: str, runner=None, *, state_root
             body = json.loads(raw)
             if not isinstance(body, dict):
                 raise ValueError('Native command must be an object')
-            if body.get('command') == 'enable' and engine.state['status'] == 'running':
-                raise ValueError('Stop the built-in demo before enabling a real task')
+            if body.get('command') == 'enable' and (engine.state['status'] == 'running' or arena.running):
+                raise ValueError('Stop the built-in demo and arena before enabling a real task')
             result = await asyncio.to_thread(native.handle, body)
             gate = Path(os.environ.get('HERMES_HOME', Path.home()/'.hermes'))/'plugins/flymes/native-gate.json'
             if body.get('command') == 'enable':
@@ -105,6 +158,8 @@ def create_app(root: Path, dataset: Path, token: str, runner=None, *, state_root
     @app.post("/control")
     async def control(body: Control):
         try:
+            if body.command in ('start', 'resume', 'step') and arena.running:
+                raise ValueError('Stop the arena before starting the built-in demo')
             values = body.model_dump(exclude_none=True)
             await engine.control(values.pop("command"), **values)
             return engine.telemetry()

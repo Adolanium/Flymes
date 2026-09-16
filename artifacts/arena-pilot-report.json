@@ -1,0 +1,262 @@
+{
+  "kind": "arena-experiment",
+  "version": 1,
+  "run_id": "2fdea4468db540658c459793a8319483",
+  "status": "completed",
+  "error": null,
+  "config": {
+    "seed": 7,
+    "seeds": 3,
+    "max_steps": 40,
+    "modes": [
+      "REAL",
+      "SHUFFLED",
+      "SILENCED",
+      "LESIONED",
+      "GREEDY",
+      "RANDOM"
+    ],
+    "circuit_seed": 7,
+    "lesion_percent": 30
+  },
+  "rows": [
+    {
+      "seed": 7,
+      "mode": "REAL",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 8,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 4.5128,
+      "world_sha256": "07257ca27abbe7ba52683852ebc86de7b2e9c7d9b8f8ce4228e08d7835eebdfc"
+    },
+    {
+      "seed": 7,
+      "mode": "SHUFFLED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 8,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 6.3949,
+      "world_sha256": "07257ca27abbe7ba52683852ebc86de7b2e9c7d9b8f8ce4228e08d7835eebdfc"
+    },
+    {
+      "seed": 7,
+      "mode": "SILENCED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 6,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 0.0932,
+      "world_sha256": "07257ca27abbe7ba52683852ebc86de7b2e9c7d9b8f8ce4228e08d7835eebdfc"
+    },
+    {
+      "seed": 7,
+      "mode": "LESIONED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 2,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 4.5574,
+      "world_sha256": "07257ca27abbe7ba52683852ebc86de7b2e9c7d9b8f8ce4228e08d7835eebdfc"
+    },
+    {
+      "seed": 7,
+      "mode": "GREEDY",
+      "food": 5,
+      "steps": 40,
+      "energy": 14,
+      "visited": 17,
+      "outcome": "step_limit",
+      "wall_seconds": 0.0019,
+      "world_sha256": "07257ca27abbe7ba52683852ebc86de7b2e9c7d9b8f8ce4228e08d7835eebdfc"
+    },
+    {
+      "seed": 7,
+      "mode": "RANDOM",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 13,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 0.0016,
+      "world_sha256": "07257ca27abbe7ba52683852ebc86de7b2e9c7d9b8f8ce4228e08d7835eebdfc"
+    },
+    {
+      "seed": 8,
+      "mode": "REAL",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 5,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 4.463,
+      "world_sha256": "b2167f81de5bc0fc17f0d9e4f7497096eb364b11007fcab7af6caa0fe2a55593"
+    },
+    {
+      "seed": 8,
+      "mode": "SHUFFLED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 5,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 5.3864,
+      "world_sha256": "b2167f81de5bc0fc17f0d9e4f7497096eb364b11007fcab7af6caa0fe2a55593"
+    },
+    {
+      "seed": 8,
+      "mode": "SILENCED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 5,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 0.0724,
+      "world_sha256": "b2167f81de5bc0fc17f0d9e4f7497096eb364b11007fcab7af6caa0fe2a55593"
+    },
+    {
+      "seed": 8,
+      "mode": "LESIONED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 9,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 4.4185,
+      "world_sha256": "b2167f81de5bc0fc17f0d9e4f7497096eb364b11007fcab7af6caa0fe2a55593"
+    },
+    {
+      "seed": 8,
+      "mode": "GREEDY",
+      "food": 5,
+      "steps": 40,
+      "energy": 18,
+      "visited": 22,
+      "outcome": "step_limit",
+      "wall_seconds": 0.0019,
+      "world_sha256": "b2167f81de5bc0fc17f0d9e4f7497096eb364b11007fcab7af6caa0fe2a55593"
+    },
+    {
+      "seed": 8,
+      "mode": "RANDOM",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 12,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 0.0016,
+      "world_sha256": "b2167f81de5bc0fc17f0d9e4f7497096eb364b11007fcab7af6caa0fe2a55593"
+    },
+    {
+      "seed": 9,
+      "mode": "REAL",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 1,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 4.3063,
+      "world_sha256": "7eab4fa80870d553f1989d5cfeec4a2addc21b203e76ced78c49c6fd247121f2"
+    },
+    {
+      "seed": 9,
+      "mode": "SHUFFLED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 8,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 5.2739,
+      "world_sha256": "7eab4fa80870d553f1989d5cfeec4a2addc21b203e76ced78c49c6fd247121f2"
+    },
+    {
+      "seed": 9,
+      "mode": "SILENCED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 1,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 0.1129,
+      "world_sha256": "7eab4fa80870d553f1989d5cfeec4a2addc21b203e76ced78c49c6fd247121f2"
+    },
+    {
+      "seed": 9,
+      "mode": "LESIONED",
+      "food": 0,
+      "steps": 32,
+      "energy": 0,
+      "visited": 3,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 4.5761,
+      "world_sha256": "7eab4fa80870d553f1989d5cfeec4a2addc21b203e76ced78c49c6fd247121f2"
+    },
+    {
+      "seed": 9,
+      "mode": "GREEDY",
+      "food": 2,
+      "steps": 38,
+      "energy": 0,
+      "visited": 5,
+      "outcome": "energy_exhausted",
+      "wall_seconds": 0.0019,
+      "world_sha256": "7eab4fa80870d553f1989d5cfeec4a2addc21b203e76ced78c49c6fd247121f2"
+    },
+    {
+      "seed": 9,
+      "mode": "RANDOM",
+      "food": 1,
+      "steps": 40,
+      "energy": 4,
+      "visited": 9,
+      "outcome": "step_limit",
+      "wall_seconds": 0.002,
+      "world_sha256": "7eab4fa80870d553f1989d5cfeec4a2addc21b203e76ced78c49c6fd247121f2"
+    }
+  ],
+  "protocol": {
+    "sensors": [
+      "scent_north",
+      "scent_east",
+      "scent_south",
+      "scent_west",
+      "blocked_north",
+      "blocked_east",
+      "blocked_south",
+      "blocked_west",
+      "food_here",
+      "energy"
+    ],
+    "actions": [
+      "NORTH",
+      "EAST",
+      "SOUTH",
+      "WEST",
+      "EAT",
+      "WAIT"
+    ],
+    "numpy_version": "2.2.6",
+    "initial_energy": 32,
+    "food_energy": 12,
+    "ticks_per_action": 4,
+    "mapping": "Seeded random input channels and action pools; no learning",
+    "primary_metric": "food collected out of seven",
+    "stopped_episodes": "Incomplete; excluded from summary averages"
+  },
+  "graph_sha256": "b0d57dcbf65f8124405440380abed0375a322376b62d560d53e96598696748af",
+  "dataset": {
+    "dataset": "male-cns:v1.0",
+    "mode": "FULL RETAINED",
+    "neurons": 166700,
+    "connections": 25582938
+  },
+  "source_sha256": {
+    "arena.py": "3223561d8851b9598214c25ee00594deed6f31f4da6486334bcfca438653cee7",
+    "neural.py": "a443e7f2d6fd9e44b6f55e4fd320ef844f255c0e85d81ca0b6a058b285e7b003"
+  }
+}

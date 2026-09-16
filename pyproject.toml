@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flymes"
-version = "0.2.0"
+version = "0.3.0"
 description = "Connectome-derived supervisory experiments for Hermes Desktop"
 readme = "README.md"
 license = "MIT"

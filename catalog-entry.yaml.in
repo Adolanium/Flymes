@@ -3,7 +3,7 @@ name: flymes
 repo: https://github.com/Adolanium/Flymes
 sha: RELEASE_COMMIT_SHA
 subdir: catalog
-description: Experimental connectome controller for Hermes tool selection, with a local companion and Desktop panel.
+description: Experimental connectome tool selection and a repeatable foraging arena, with a local companion and Desktop panel.
 maintainer: Adolanium
 tier: community
 category: desktop

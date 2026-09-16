@@ -9,8 +9,31 @@ import urllib.error
 import urllib.request
 
 from fastapi import APIRouter, HTTPException
+from typing import Literal
 
 router = APIRouter()
+
+
+@router.get('/arena/state')
+async def arena_state():
+    return await asyncio.to_thread(_forward, 'arena/state')
+
+
+@router.post('/arena')
+async def arena_command(body: dict):
+    if len(json.dumps(body).encode('utf-8')) > 4096:
+        raise HTTPException(413, 'Arena command too large')
+    return await asyncio.to_thread(_forward, 'arena', body)
+
+
+@router.get('/arena/report')
+async def arena_report():
+    return await asyncio.to_thread(_forward, 'arena/report')
+
+
+@router.get('/arena/replay/{seed}/{mode}')
+async def arena_replay(seed: int, mode: Literal['REAL', 'SHUFFLED', 'SILENCED', 'LESIONED', 'GREEDY', 'RANDOM']):
+    return await asyncio.to_thread(_forward, f'arena/replay/{seed}/{mode}')
 
 
 def _forward(path, body=None, _attempt=0):

@@ -49,6 +49,7 @@ before running any scripts to change it. Use an absolute path outside
 | Downloaded and prepared graph | `data/malecns-v1/` |
 | Native decision logs and checkpoints | `.flymes/native-runs/` |
 | Built-in demo logs and checkpoints | `.flymes/runs/` |
+| Arena episodes and comparison reports | `.flymes/arena/` |
 | Disposable demo workspaces | `demo/workspaces/` |
 | Exported numeric replay | `artifacts/replay.json` |
 | Companion logs and process ID | `.flymes/` |

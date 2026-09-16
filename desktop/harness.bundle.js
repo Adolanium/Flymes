@@ -21718,6 +21718,82 @@ function NeuralView({ state, stale }) {
   return (0, import_react.createElement)("div", { className: "fm-neural" }, (0, import_react.createElement)("canvas", { ref, "aria-label": `${neural.nodes.length} measured neuron samples, ${neural.layout === "anatomical" ? "anatomical projection" : "schematic layout"}`, role: "img" }), !neural.nodes.length && (0, import_react.createElement)("div", { className: "fm-empty" }, "Awaiting neural telemetry", (0, import_react.createElement)("small", null, "Activity appears only after a measured simulation step.")), (0, import_react.createElement)("div", { className: "fm-caption" }, (0, import_react.createElement)("span", null, neural.layout === "anatomical" ? "Anatomical projection" : "Schematic layout"), (0, import_react.createElement)("span", null, `${neural.nodes.length} rendered samples${stale ? " \xB7 frozen" : ""}`)));
 }
 var definitionList = (values) => (0, import_react.createElement)("dl", null, Object.entries(values).flatMap(([key, value]) => [(0, import_react.createElement)("dt", { key: key + "k" }, key), (0, import_react.createElement)("dd", { key }, valueText(value))]));
+function DemoPanel({ ctx: ctx2 }) {
+  const [state, setState] = (0, import_react.useState)(null), [error, setError] = (0, import_react.useState)(""), [pollError, setPollError] = (0, import_react.useState)(""), [busy, setBusy] = (0, import_react.useState)(""), [received, setReceived] = (0, import_react.useState)(0), [now, setNow] = (0, import_react.useState)(Date.now()), [presentation, setPresentation] = (0, import_react.useState)(false), [mode, setMode] = (0, import_react.useState)("REAL"), [percent, setPercent] = (0, import_react.useState)(10), [population, setPopulation] = (0, import_react.useState)(""), [seed, setSeed] = (0, import_react.useState)(42), [checkpoint, setCheckpoint] = (0, import_react.useState)("");
+  const alive = (0, import_react.useRef)(true);
+  (0, import_react.useEffect)(() => {
+    alive.current = true;
+    let timer, clock;
+    const poll = async () => {
+      try {
+        const next = await ctx2.rest("/state", { timeoutMs: 5e3 });
+        if (alive.current) {
+          setState(next);
+          setReceived(Date.now());
+          setPollError("");
+        }
+      } catch (e) {
+        if (alive.current) setPollError(String(e.message || e));
+      } finally {
+        if (alive.current) timer = setTimeout(poll, 1e3);
+      }
+    };
+    poll();
+    clock = setInterval(() => setNow(Date.now()), 1e3);
+    return () => {
+      alive.current = false;
+      clearTimeout(timer);
+      clearInterval(clock);
+      ctx2.rest("/control", { method: "POST", body: { command: "stop", reason: "panel_unmounted" }, timeoutMs: 3e3 }).catch(() => {
+      });
+    };
+  }, [ctx2]);
+  const command = async (name, extra = {}) => {
+    setBusy(name);
+    setError("");
+    try {
+      const result = await ctx2.rest("/control", { method: "POST", body: { command: name, request_id: crypto.randomUUID(), ...extra }, timeoutMs: ["start", "compare", "replay"].includes(name) ? 6e4 : 15e3 });
+      if (!alive.current) return;
+      if (result?.checkpoint_id) setCheckpoint(result.checkpoint_id);
+      else if (result?.checkpoints?.length) setCheckpoint(result.checkpoints.at(-1));
+      if (result?.status) setState(result);
+      else setState(await ctx2.rest("/state", { timeoutMs: 5e3 }));
+      setReceived(Date.now());
+    } catch (e) {
+      if (alive.current) setError(String(e.message || e));
+    } finally {
+      if (alive.current) setBusy("");
+    }
+  };
+  const stale = !received || now - received > 5e3 || !!pollError, running = state?.status === "running", replay = state?.label === "REPLAY", decision = state?.decision || {}, selected = decision.action || decision.selected_action, dataset = state?.dataset || {}, disabled = !!busy || stale;
+  const button = (label, name, extra = {}, props = {}) => (0, import_react.createElement)("button", { type: "button", disabled, onClick: () => command(name, extra), ...props }, busy === name ? "Working\u2026" : label);
+  const testResult = state?.last_test ?? (state?.observation?.tests_passed !== void 0 ? `${state.observation.tests_passed ?? "?"} passed / ${state.observation.tests_failed ?? "?"} failed` : "Unavailable");
+  return (0, import_react.createElement)(
+    "article",
+    { className: "flymes", "data-presentation": presentation },
+    (0, import_react.createElement)("style", null, CSS),
+    (0, import_react.createElement)("header", { className: "fm-head" }, (0, import_react.createElement)("div", null, (0, import_react.createElement)("h1", null, "Flymes"), (0, import_react.createElement)("p", { className: "fm-subhead" }, "A fly in the loop."))),
+    (0, import_react.createElement)("div", { className: "fm-toolbar" }, (0, import_react.createElement)("span", { className: "fm-state " + (!stale ? "fm-live" : ""), "aria-live": "polite" }, stale ? "DISCONNECTED" : replay ? "RECORDED REPLAY" : running ? "LIVE" : (state?.status || "IDLE").toUpperCase()), (0, import_react.createElement)("span", { className: "fm-mode" }, state?.mode === "HEURISTIC" ? "HEURISTIC CONTROL" : `${state?.mode || mode} CONNECTOME`)),
+    (error || pollError || state?.error) && (0, import_react.createElement)("div", { className: "fm-error", role: "alert" }, (0, import_react.createElement)("p", null, pollError ? "Connection interrupted. Retrying automatically." : "The last operation failed."), !presentation && (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Error details"), (0, import_react.createElement)("pre", null, error || pollError || state.error))),
+    (0, import_react.createElement)(FlyAvatar, { state, stale }),
+    (0, import_react.createElement)("div", { className: "fm-mechanism" }, (0, import_react.createElement)("div", null, (0, import_react.createElement)("strong", null, state?.mode === "HEURISTIC" ? "Heuristic selects" : "Connectome selects"), (0, import_react.createElement)("span", null, "The next action")), (0, import_react.createElement)("span", { className: "fm-arrow", "aria-hidden": true }, "\u2192"), (0, import_react.createElement)("div", null, (0, import_react.createElement)("strong", null, "Hermes executes"), (0, import_react.createElement)("span", null, "One bounded step"))),
+    (0, import_react.createElement)(
+      "section",
+      { className: "fm-section" },
+      (0, import_react.createElement)("div", { className: "fm-decision-meta" }, (0, import_react.createElement)("span", null, selected ? "Selected action" : "Ready when you are"), (0, import_react.createElement)("span", null, numeric(state?.step) ? `STEP ${state.step}` : "NO STEPS YET")),
+      (0, import_react.createElement)("div", { className: "fm-action", "data-selected": !!selected }, selected ? ACTION_LABELS[selected] || selected : "Let the fly choose."),
+      (0, import_react.createElement)("p", { className: "fm-note" }, stale ? "Connection lost. Showing the last received frame." : !selected ? "Prepare a task, then step through its decisions." : `${selected} \xB7 ${replay ? "Recorded decision" : running ? "Run in progress" : `Run ${state?.status || "idle"}`}`),
+      (0, import_react.createElement)("div", { className: "fm-result" }, (0, import_react.createElement)("span", null, "Last test result"), (0, import_react.createElement)("output", null, valueText(testResult))),
+      !presentation && (0, import_react.createElement)("details", { className: "fm-details" }, (0, import_react.createElement)("summary", null, "How this action was selected"), (0, import_react.createElement)("div", { className: "fm-scores" }, scoreRows(decision.scores).map((row) => (0, import_react.createElement)("div", { className: "fm-score", key: row.action, "data-selected": row.action === selected }, (0, import_react.createElement)("span", null, row.action), (0, import_react.createElement)("div", { className: "fm-track" }, (0, import_react.createElement)("div", { className: "fm-fill", style: { width: `${row.width}%` } })), (0, import_react.createElement)("output", null, row.value === null ? "\u2014" : row.value.toFixed(4))))), (0, import_react.createElement)("p", { className: "fm-note" }, (decision.mode || state?.mode) === "HEURISTIC" ? "Heuristic action scores; neural activity is reference only. " : "Relative neural readouts, not confidence. ", decision.valid_actions?.length === 1 ? "Only one action was available." : ""), (0, import_react.createElement)(NeuralView, { state, stale }))
+    ),
+    (0, import_react.createElement)("section", { className: "fm-section fm-controls-section" }, (0, import_react.createElement)("h2", null, "Run controls"), !presentation && (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Task and experiment"), definitionList({ "Dedicated workspace": state?.workspace, "Task": state?.task || "Backend-configured demo task" }), (0, import_react.createElement)("label", null, "Controller", (0, import_react.createElement)("select", { value: mode, onChange: (e) => setMode(e.target.value), disabled: running }, ["REAL", "SHUFFLED", "SILENCED", "HEURISTIC", "LESIONED"].map((v) => (0, import_react.createElement)("option", { key: v }, v))))), (0, import_react.createElement)("div", { className: "fm-controls" }, button(state?.status === "paused" ? "Run" : "Prepare run", state?.status === "paused" ? "resume" : "start", { mode }, { className: "fm-primary", disabled: disabled || running || replay }), button("Pause", "pause", {}, { disabled: disabled || !running }), button("Step", "step", { mode }, { disabled: disabled || state?.status !== "paused" || replay }), button("Stop", "stop", {}, { disabled: false })), !presentation && (0, import_react.createElement)("p", { className: "fm-note" }, "Closing this panel requests stop."), !presentation && definitionList({ "Simulated time": numeric(state?.simulation_time) ? `${state.simulation_time.toFixed(3)} s` : null, "Wall time": numeric(state?.wall_time) ? `${state.wall_time.toFixed(1)} s` : null, "Simulation health": state?.health, "Last test": state?.last_test ?? (state?.observation?.tests_passed !== void 0 ? `${state.observation.tests_passed ?? "?"} passed / ${state.observation.tests_failed ?? "?"} failed` : null) })),
+    !presentation && (0, import_react.createElement)("section", { className: "fm-section" }, (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Sensory channels"), (0, import_react.createElement)("p", { className: "fm-note" }, "Measured task observations. Missing values are unavailable."), definitionList(state?.observation || {}), state?.decision?.encoder && (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Derived encoder features"), (0, import_react.createElement)("pre", null, JSON.stringify(state.decision.encoder, null, 2))))),
+    !presentation && (0, import_react.createElement)("section", { className: "fm-section" }, (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Interventions and replay"), (0, import_react.createElement)("p", null, "Pause, checkpoint, then compare the same observation. Open-loop comparisons do not execute a coding task."), (0, import_react.createElement)("div", { className: "fm-controls" }, button("Checkpoint", "checkpoint", {}, { disabled: disabled || running })), (0, import_react.createElement)("label", null, "Checkpoint ID", (0, import_react.createElement)("input", { value: checkpoint, onChange: (e) => setCheckpoint(e.target.value), placeholder: "Returned by checkpoint" })), (0, import_react.createElement)("label", null, "Silence neurons (%)", (0, import_react.createElement)("input", { type: "number", min: 0, max: 100, value: percent, onChange: (e) => setPercent(Number(e.target.value)) })), (0, import_react.createElement)("label", null, "Annotated population (optional)", (0, import_react.createElement)("input", { value: population, onChange: (e) => setPopulation(e.target.value), placeholder: "Exact type or class from loaded annotations" })), (0, import_react.createElement)("p", { className: "fm-note" }, "Silencing applies to the next LESIONED readout. Unknown population names are rejected."), (0, import_react.createElement)("label", null, "Intervention seed", (0, import_react.createElement)("input", { type: "number", min: 0, value: seed, onChange: (e) => setSeed(Number(e.target.value)) })), (0, import_react.createElement)("div", { className: "fm-controls" }, button("Silence neurons", "lesion", { percent, seed, ...population ? { population } : {} }, { disabled: disabled || running }), button("Restore neurons", "clear_lesions", {}, { disabled: disabled || running }), button("Compare readouts", "compare", { seed }, { disabled: disabled || running }), button("Replay readouts", "replay", { checkpoint_id: checkpoint }, { disabled: disabled || running || !checkpoint })), state?.comparisons && (0, import_react.createElement)("div", null, (0, import_react.createElement)("h2", null, "Open-loop sensitivity"), definitionList(Object.fromEntries(Object.entries(state.comparisons.results || {}).map(([name, result]) => [name, result.action || result.selected_action]))), (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Scores and evidence"), (0, import_react.createElement)("pre", null, JSON.stringify(state.comparisons, null, 2)))))),
+    !presentation && (0, import_react.createElement)("section", { className: "fm-section" }, (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Dataset and run"), definitionList({ "Dataset": dataset.version || dataset.name || dataset.dataset, "Simulation scope": dataset.mode || dataset.scope, "Retained neurons": dataset.neurons ?? dataset.neuron_count, "Directed connections": dataset.connections ?? dataset.edge_count, "Individual synapses": dataset.synapses, "Run ID": state?.run_id, "Model/provider": state?.model, "Workspace": state?.workspace, "Telemetry received": received ? new Date(received).toLocaleTimeString() : null }), (0, import_react.createElement)("p", { className: "fm-note" }, "Synapse counts become model weights through documented assumptions. This simulation does not understand code."))),
+    !presentation && (0, import_react.createElement)("section", { className: "fm-section" }, (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, `Decision history \xB7 ${state?.history?.length || 0}`), (0, import_react.createElement)("ol", { className: "fm-history" }, (state?.history || []).slice(-30).reverse().map((entry, i) => (0, import_react.createElement)("li", { key: entry.step ?? i }, (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, `Step ${entry.step} \xB7 ${entry.selected_action || entry.action || "Unknown"}`), (0, import_react.createElement)("pre", null, JSON.stringify(entry, null, 2)))))))),
+    (0, import_react.createElement)("footer", { className: "fm-note" }, "Fruit-fly wiring. Fixed decoder. Measured decisions.")
+  );
+}
 function NativePanel({ ctx: ctx2 }) {
   const [state, setState] = (0, import_react.useState)(null), [session, setSession] = (0, import_react.useState)(""), [workspace, setWorkspace] = (0, import_react.useState)(""), [mode, setMode] = (0, import_react.useState)("REAL"), [error, setError] = (0, import_react.useState)(""), [offline, setOffline] = (0, import_react.useState)(false), [busy, setBusy] = (0, import_react.useState)(""), [presentation, setPresentation] = (0, import_react.useState)(false);
   const mounted = (0, import_react.useRef)(true);
@@ -21806,8 +21882,275 @@ function NativePanel({ ctx: ctx2 }) {
     (0, import_react.createElement)("footer", { className: "fm-note" }, "Calls and results appear in the normal Hermes conversation. Motion illustrates actions, not neural motor output.")
   );
 }
-function FlymesPanel({ ctx: ctx2 }) {
-  return (0, import_react.createElement)("div", { style: { height: "100%", minHeight: 0 } }, (0, import_react.createElement)("style", null, CSS), (0, import_react.createElement)(NativePanel, { ctx: ctx2 }));
+var ARENA_LABELS = { REAL: "Connectome", SHUFFLED: "Rewired", SILENCED: "No recurrence", LESIONED: "Lesioned", GREEDY: "Greedy baseline", RANDOM: "Random baseline" };
+var ARENA_ACTIONS = ["NORTH", "EAST", "SOUTH", "WEST", "EAT", "WAIT"];
+function arenaSummary(rows = []) {
+  return Object.keys(ARENA_LABELS).flatMap((mode) => {
+    const completed = rows.filter((row) => row.mode === mode && ["all_food", "energy_exhausted", "step_limit"].includes(row.outcome));
+    if (!completed.length) return [];
+    return [{
+      mode,
+      count: completed.length,
+      food: completed.reduce((sum, row) => sum + row.food, 0) / completed.length,
+      steps: completed.reduce((sum, row) => sum + row.steps, 0) / completed.length
+    }];
+  });
+}
+function validateArenaReplay(value) {
+  const integer = (n, min, max) => Number.isInteger(n) && n >= min && n <= max;
+  const point = (p) => Array.isArray(p) && p.length === 2 && p.every((n) => integer(n, 0, 10));
+  if (value?.kind !== "arena-replay" || value.version !== 1 || value.world?.size !== 11 || !ARENA_LABELS[value.mode] || !Array.isArray(value.world.walls) || value.world.walls.length > 121 || !value.world.walls.every(point) || !Array.isArray(value.world.food) || value.world.food.length !== 7 || !value.world.food.every(point) || !Array.isArray(value.frames) || !value.frames.length || value.frames.length > 121) throw Error("This is not a supported Flymes arena replay.");
+  for (const [index, frame] of value.frames.entries()) {
+    if (!integer(frame.step, 0, 120) || frame.step !== index || !integer(frame.x, 0, 10) || !integer(frame.y, 0, 10) || !integer(frame.energy, 0, 32) || !Array.isArray(frame.eaten) || frame.eaten.length > 7 || new Set(frame.eaten).size !== frame.eaten.length || !frame.eaten.every((n) => integer(n, 0, 6)) || frame.action !== null && !ARENA_ACTIONS.includes(frame.action) || !frame.scores || typeof frame.scores !== "object" || Array.isArray(frame.scores) || Object.entries(frame.scores).some(([key, n]) => !ARENA_ACTIONS.includes(key) || !Number.isFinite(n))) throw Error("The arena replay contains an invalid frame.");
+  }
+  return value;
+}
+function ArenaMap({ world, frame, trail = [] }) {
+  const ref = (0, import_react.useRef)(null);
+  (0, import_react.useEffect)(() => {
+    if (!world || !frame) return;
+    const canvas = ref.current;
+    const paint = () => {
+      const size = canvas.clientWidth, dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(size * dpr);
+      canvas.height = Math.round(size * dpr);
+      const c = canvas.getContext("2d");
+      c.scale(dpr, dpr);
+      const unit = size / world.size;
+      c.fillStyle = "#e9e4d6";
+      c.fillRect(0, 0, size, size);
+      c.strokeStyle = "#d8d0be";
+      c.lineWidth = 0.5;
+      for (let i = 1; i < world.size; i++) {
+        c.beginPath();
+        c.moveTo(i * unit, 0);
+        c.lineTo(i * unit, size);
+        c.moveTo(0, i * unit);
+        c.lineTo(size, i * unit);
+        c.stroke();
+      }
+      c.fillStyle = "#706251";
+      for (const [x, y] of world.walls) c.fillRect(x * unit + 1, y * unit + 1, unit - 2, unit - 2);
+      c.strokeStyle = "#9c6332";
+      c.lineWidth = 2;
+      c.lineJoin = "round";
+      c.beginPath();
+      trail.filter((f) => f.step <= frame.step).forEach((f, i) => {
+        const x = (f.x + 0.5) * unit, y = (f.y + 0.5) * unit;
+        i ? c.lineTo(x, y) : c.moveTo(x, y);
+      });
+      c.stroke();
+      world.food.forEach(([x, y], i) => {
+        if (frame.eaten.includes(i)) return;
+        c.fillStyle = "#44613c";
+        c.beginPath();
+        c.arc((x + 0.5) * unit, (y + 0.5) * unit, unit * 0.18, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = "#44613c";
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo((x + 0.5) * unit, (y + 0.36) * unit);
+        c.lineTo((x + 0.63) * unit, (y + 0.24) * unit);
+        c.stroke();
+      });
+      const specimen = document.createElement("canvas");
+      specimen.width = 350;
+      specimen.height = 300;
+      drawFly(specimen.getContext("2d"), 350, 300, flyPose("FINISH", 0), 0);
+      const direction = { NORTH: 0, EAST: Math.PI / 2, SOUTH: Math.PI, WEST: -Math.PI / 2 }[frame.action] || 0;
+      c.save();
+      c.translate((frame.x + 0.5) * unit, (frame.y + 0.5) * unit);
+      c.rotate(direction);
+      c.drawImage(specimen, -unit * 0.8, -unit * 0.7, unit * 1.6, unit * 1.4);
+      c.restore();
+    };
+    paint();
+    const observer = new ResizeObserver(paint);
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [world, frame, trail]);
+  return (0, import_react.createElement)("canvas", { ref, className: "fa-map", role: "img", "aria-label": frame ? `Foraging world. Step ${frame.step}. Fly at column ${frame.x}, row ${frame.y}. ${frame.eaten.length} of 7 food collected. Energy ${frame.energy} of 32.` : "Foraging arena" });
+}
+function saveArenaFile(value, name) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1e3);
+}
+function ArenaPanel({ ctx: ctx2 }) {
+  const [state, setState] = (0, import_react.useState)(null), [offline, setOffline] = (0, import_react.useState)(false), [error, setError] = (0, import_react.useState)(""), [busy, setBusy] = (0, import_react.useState)(false);
+  const [mode, setMode] = (0, import_react.useState)("GREEDY"), [seed, setSeed] = (0, import_react.useState)(7), [steps, setSteps] = (0, import_react.useState)(60), [seeds, setSeeds] = (0, import_react.useState)(3), [lesion, setLesion] = (0, import_react.useState)(30);
+  const [selected, setSelected] = (0, import_react.useState)(["GREEDY", "RANDOM"]), [replay, setReplay] = (0, import_react.useState)(null), [position2, setPosition] = (0, import_react.useState)(0);
+  const alive = (0, import_react.useRef)(true), epoch = (0, import_react.useRef)(0), file = (0, import_react.useRef)(null);
+  (0, import_react.useEffect)(() => {
+    alive.current = true;
+    let timer;
+    const poll = async () => {
+      const version = epoch.current;
+      try {
+        const next = await ctx2.rest("/arena/state", { timeoutMs: 5e3 });
+        if (alive.current && version === epoch.current) {
+          setState(next);
+          setOffline(false);
+        }
+      } catch {
+        if (alive.current) setOffline(true);
+      } finally {
+        if (alive.current) timer = setTimeout(poll, 600);
+      }
+    };
+    poll();
+    return () => {
+      alive.current = false;
+      clearTimeout(timer);
+      ctx2.rest("/arena", { method: "POST", body: { command: "stop" }, timeoutMs: 3e3 }).catch(() => {
+      });
+    };
+  }, [ctx2]);
+  const active = ["preparing", "running", "paused", "stopping"].includes(state?.status);
+  const available = state?.available_modes || ["GREEDY", "RANDOM"];
+  const valid = Number.isInteger(seed) && seed >= 0 && seed <= 4294967285 && Number.isInteger(steps) && steps >= 10 && steps <= 120 && Number.isInteger(seeds) && seeds >= 1 && seeds <= 10;
+  const send = async (command) => {
+    epoch.current++;
+    setBusy(true);
+    setError("");
+    if (command === "run" || command === "compare") setReplay(null);
+    try {
+      const result = await ctx2.rest("/arena", { method: "POST", body: { command, mode, seed, max_steps: steps, seeds, lesion_percent: lesion, modes: selected.filter((m) => available.includes(m)) }, timeoutMs: 15e3 });
+      if (alive.current) {
+        setState(result);
+        setOffline(false);
+      }
+    } catch (e) {
+      if (alive.current) setError(String(e.message || e));
+    } finally {
+      if (alive.current) setBusy(false);
+    }
+  };
+  const load = async (row) => {
+    setBusy(true);
+    setError("");
+    try {
+      const result = validateArenaReplay(await ctx2.rest(`/arena/replay/${row.seed}/${row.mode}`, { timeoutMs: 15e3 }));
+      if (alive.current) {
+        setReplay(result);
+        setPosition(0);
+      }
+    } catch (e) {
+      if (alive.current) setError(String(e.message || e));
+    } finally {
+      if (alive.current) setBusy(false);
+    }
+  };
+  const exportReport = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      saveArenaFile(await ctx2.rest("/arena/report", { timeoutMs: 15e3 }), "flymes-arena-report.json");
+    } catch (e) {
+      if (alive.current) setError(String(e.message || e));
+    } finally {
+      if (alive.current) setBusy(false);
+    }
+  };
+  const importReplay = async (event) => {
+    try {
+      const chosen = event.target.files?.[0];
+      if (!chosen) return;
+      if (chosen.size > 1024 * 1024) throw Error("Replay files must be smaller than 1 MB.");
+      const value = validateArenaReplay(JSON.parse(await chosen.text()));
+      setReplay(value);
+      setPosition(0);
+      setError("");
+    } catch (e) {
+      setError(String(e.message || e));
+    } finally {
+      event.target.value = "";
+    }
+  };
+  const frame = replay ? replay.frames[position2] : state?.frame, world = replay?.world || state?.world;
+  const currentMode = replay?.mode || state?.mode || mode;
+  const button = (text, command, disabled = false) => (0, import_react.createElement)("button", { type: "button", disabled: busy || disabled, onClick: () => send(command) }, text);
+  return (0, import_react.createElement)(
+    "article",
+    { className: "flymes fa-panel" },
+    (0, import_react.createElement)("header", { className: "fm-head" }, (0, import_react.createElement)("div", null, (0, import_react.createElement)("h1", null, "Foraging arena"), (0, import_react.createElement)("p", { className: "fm-subhead" }, "A small world. Every move is measured."))),
+    (0, import_react.createElement)("p", { className: "fm-note" }, "No language model or provider calls. The circuit and baselines receive the same scent, obstacle, food, and energy signals."),
+    (0, import_react.createElement)("div", { className: "fm-toolbar" }, (0, import_react.createElement)("span", { className: "fm-state", role: "status" }, replay ? "RECORDED REPLAY" : offline ? "DISCONNECTED" : (state?.status || "CONNECTING").toUpperCase()), (0, import_react.createElement)("span", null, ARENA_LABELS[currentMode])),
+    offline && (0, import_react.createElement)("p", { className: "fm-error" }, "Companion unavailable. Run scripts/launch.ps1; reconnecting automatically. Recorded replays still work."),
+    error && (0, import_react.createElement)("p", { className: "fm-error", role: "alert" }, error),
+    state?.error && (0, import_react.createElement)("p", { className: "fm-error", role: "alert" }, state.error),
+    state?.notice && (0, import_react.createElement)("p", null, state.notice),
+    world && frame ? (0, import_react.createElement)("figure", { className: "fa-world" }, (0, import_react.createElement)(ArenaMap, { world, frame, trail: replay?.frames || [] }), (0, import_react.createElement)("figcaption", null, "Green dots are food. Brown cells are walls. The fly illustration marks its measured position.")) : (0, import_react.createElement)("div", { className: "fa-empty" }, (0, import_react.createElement)("h2", null, "Find seven food sites."), (0, import_react.createElement)("p", null, "Each move spends energy. Eating restores it. Choose a controller, then watch a seeded world unfold.")),
+    frame && (0, import_react.createElement)("div", { className: "fa-readouts" }, (0, import_react.createElement)("span", null, (0, import_react.createElement)("strong", null, `${frame.eaten.length} / 7`), " food"), (0, import_react.createElement)("span", null, (0, import_react.createElement)("strong", null, `${frame.energy} / 32`), " energy"), (0, import_react.createElement)("span", null, (0, import_react.createElement)("strong", null, frame.step), " moves")),
+    frame && (0, import_react.createElement)("p", { className: "fa-action" }, frame.action ? `Last action: ${frame.action.toLowerCase()}` : "At the starting position."),
+    replay && (0, import_react.createElement)("section", { className: "fm-section" }, (0, import_react.createElement)("label", null, `Replay frame ${position2} of ${replay.frames.length - 1}`, (0, import_react.createElement)("input", { type: "range", min: 0, max: replay.frames.length - 1, value: position2, onChange: (e) => setPosition(Number(e.target.value)) })), (0, import_react.createElement)("div", { className: "fm-controls" }, (0, import_react.createElement)("button", { type: "button", onClick: () => setReplay(null) }, "Back to experiment"), (0, import_react.createElement)("button", { type: "button", onClick: () => saveArenaFile(replay, "flymes-arena-replay.json") }, "Save replay"))),
+    (0, import_react.createElement)(
+      "section",
+      { className: "fm-section" },
+      (0, import_react.createElement)("h2", null, "Watch a run"),
+      (0, import_react.createElement)("label", null, "Controller", (0, import_react.createElement)("select", { value: mode, disabled: active || busy, onChange: (e) => setMode(e.target.value) }, Object.entries(ARENA_LABELS).map(([key, label]) => (0, import_react.createElement)("option", { key, value: key, disabled: !available.includes(key) }, label)))),
+      !state?.dataset_available && (0, import_react.createElement)("p", { className: "fm-note" }, "Neural controllers need the prepared MaleCNS dataset. Greedy and random baselines work without it. No synthetic graph is substituted."),
+      state?.dataset && (0, import_react.createElement)("p", { className: "fm-note" }, `${state.dataset.mode || "Prepared graph"} \xB7 ${state.dataset.neurons ?? "Unknown"} neurons. Engineered sensory mappings; no learning.`),
+      (0, import_react.createElement)("div", { className: "fa-fields" }, (0, import_react.createElement)("label", null, "World seed", (0, import_react.createElement)("input", { type: "number", min: 0, max: 4294967285, value: Number.isFinite(seed) ? seed : "", disabled: active || busy, onChange: (e) => setSeed(e.target.value === "" ? NaN : Number(e.target.value)) })), (0, import_react.createElement)("label", null, "Move limit", (0, import_react.createElement)("input", { type: "number", min: 10, max: 120, value: Number.isFinite(steps) ? steps : "", disabled: active || busy, onChange: (e) => setSteps(e.target.value === "" ? NaN : Number(e.target.value)) }))),
+      (0, import_react.createElement)("label", null, `Lesion amount: ${lesion}%`, (0, import_react.createElement)("input", { type: "range", min: 0, max: 100, step: 10, value: lesion, disabled: active || busy, onChange: (e) => setLesion(Number(e.target.value)) })),
+      !valid && (0, import_react.createElement)("p", { className: "fm-error" }, "Use a nonnegative whole-number seed, 10\u2013120 moves, and 1\u201310 comparison worlds."),
+      (0, import_react.createElement)(
+        "div",
+        { className: "fm-controls" },
+        button("Run arena", "run", active || offline || !state || !valid || !available.includes(mode)),
+        active && state?.experiment === "single" && button(state.status === "paused" ? "Resume" : "Pause", state.status === "paused" ? "resume" : "pause", !["paused", "running"].includes(state.status) || offline),
+        active && button("Stop experiment", "stop", state.status === "stopping")
+      )
+    ),
+    (0, import_react.createElement)(
+      "section",
+      { className: "fm-section" },
+      (0, import_react.createElement)("h2", null, "Compare the same worlds"),
+      (0, import_react.createElement)("p", null, "Each controller starts fresh on each world. Food collected is the primary measure. Stopped episodes are excluded from averages."),
+      (0, import_react.createElement)("fieldset", { className: "fa-modes", disabled: active || busy }, (0, import_react.createElement)("legend", null, "Controllers to compare"), Object.entries(ARENA_LABELS).map(([key, label]) => (0, import_react.createElement)("label", { key }, (0, import_react.createElement)("input", { type: "checkbox", checked: selected.includes(key), disabled: !available.includes(key), onChange: (e) => setSelected((old) => e.target.checked ? [...old, key] : old.filter((m) => m !== key)) }), label))),
+      (0, import_react.createElement)("label", null, "Consecutive world seeds", (0, import_react.createElement)("input", { type: "number", min: 1, max: 10, value: Number.isFinite(seeds) ? seeds : "", disabled: active || busy, onChange: (e) => setSeeds(e.target.value === "" ? NaN : Number(e.target.value)) })),
+      (0, import_react.createElement)("div", { className: "fm-controls" }, button("Compare controllers", "compare", active || offline || !state || !valid || selected.filter((m) => available.includes(m)).length < 2)),
+      state?.total > 0 && (0, import_react.createElement)("p", { role: "status" }, `${state.progress} of ${state.total} episodes recorded${active ? ". Neural comparisons can take several minutes." : "."}`),
+      state?.rows?.length > 0 && (0, import_react.createElement)(
+        "div",
+        { className: "fa-results" },
+        (0, import_react.createElement)("table", null, (0, import_react.createElement)("caption", null, "Completed episodes only"), (0, import_react.createElement)("thead", null, (0, import_react.createElement)("tr", null, (0, import_react.createElement)("th", { scope: "col" }, "Controller"), (0, import_react.createElement)("th", { scope: "col" }, "Mean food"), (0, import_react.createElement)("th", { scope: "col" }, "Runs"))), (0, import_react.createElement)("tbody", null, arenaSummary(state.rows).map((row) => (0, import_react.createElement)("tr", { key: row.mode }, (0, import_react.createElement)("th", { scope: "row" }, ARENA_LABELS[row.mode]), (0, import_react.createElement)("td", null, `${row.food.toFixed(2)} / 7`), (0, import_react.createElement)("td", null, row.count))))),
+        (0, import_react.createElement)("details", null, (0, import_react.createElement)("summary", null, "Individual episodes and replay"), state.rows.map((row) => (0, import_react.createElement)("div", { className: "fa-episode", key: `${row.seed}-${row.mode}` }, (0, import_react.createElement)("span", null, `${ARENA_LABELS[row.mode]} \xB7 world ${row.seed}: ${row.food}/7, ${row.outcome.replaceAll("_", " ")}`), (0, import_react.createElement)("button", { type: "button", disabled: active || busy, onClick: () => load(row) }, "Replay"))))
+      ),
+      (0, import_react.createElement)("p", { className: "fm-note" }, "A small experiment, not evidence of a biological advantage. Compare multiple seeds and inspect failures."),
+      (0, import_react.createElement)("div", { className: "fm-controls" }, (0, import_react.createElement)("button", { type: "button", disabled: !state?.has_report || busy || offline, onClick: exportReport }, "Save report"), (0, import_react.createElement)("button", { type: "button", disabled: active || busy, onClick: () => file.current.click() }, "Open replay"), (0, import_react.createElement)("input", { ref: file, type: "file", accept: ".json,application/json", hidden: true, onChange: importReplay }))
+    ),
+    frame && (0, import_react.createElement)("details", { className: "fm-section" }, (0, import_react.createElement)("summary", null, "Action readouts"), (0, import_react.createElement)("p", { className: "fm-note" }, "Scores are relative activity, not probabilities. A common action mask prevents entering walls and eating empty cells."), (0, import_react.createElement)("pre", null, JSON.stringify(frame.scores, null, 2)))
+  );
+}
+var ARENA_CSS = `
+.fm-nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border,#42413d);font:13px var(--font-sans,Segoe UI,sans-serif)}
+.fm-nav button{font:inherit;color:var(--text-primary,#ecebe7);background:transparent;border:1px solid transparent;border-radius:4px;padding:8px 10px;cursor:pointer}
+.fm-nav button[aria-pressed=true]{border-color:var(--accent,#dfb476);color:var(--accent,#dfb476)}
+.fm-nav button:hover{background:var(--surface-hover,#302d27)}.fm-nav button:focus-visible{outline:2px solid var(--accent,#dfb476);outline-offset:2px}
+.fa-panel{height:calc(100% - 58px)}.fa-world{margin:16px 0 0}.fa-panel .fa-map{display:block;width:100%;height:auto;aspect-ratio:1;background:#e9e4d6;border-radius:4px}
+.fa-world figcaption{font-size:12px;color:var(--text-secondary,#bab5ab);margin-top:8px;line-height:1.5}
+.fa-empty{padding:30px 0;border-block:1px solid var(--border,#42413d);margin-block:20px}.fa-empty h2{font-size:22px;margin-bottom:8px}
+.fa-readouts{display:flex;justify-content:space-between;gap:8px;margin-top:18px;font-variant-numeric:tabular-nums}.fa-readouts span{display:flex;flex-direction:column;gap:3px;color:var(--text-secondary,#bab5ab)}.fa-readouts strong{font-size:19px;color:var(--text-primary,#ecebe7);font-weight:600}
+.fa-action{font-size:15px}.fa-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fa-fields>*{min-width:0}.fa-panel label{display:block;margin:10px 0}
+.fa-panel input[type=range]{padding:0;accent-color:var(--accent,#dfb476)}.fa-panel input[type=number]{box-sizing:border-box;width:100%;min-width:0}.fa-panel select{width:100%}
+.fa-modes{padding:8px 0;border:0}.fa-modes legend{font-weight:600}.fa-modes label{display:flex;align-items:center;gap:8px}.fa-modes input[type=checkbox]{width:16px;min-height:16px;margin:0;accent-color:var(--accent,#dfb476)}
+.fa-results table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;margin-top:18px}.fa-results caption{text-align:left;font-size:12px;color:var(--text-secondary,#bab5ab);padding-bottom:8px}.fa-results th,.fa-results td{text-align:left;padding:10px 4px;border-bottom:1px solid var(--border,#42413d);font-size:12px}.fa-results th{font-weight:500}.fa-results td{white-space:nowrap}
+.fa-episode{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:12px;font-size:12px}.fa-episode span{min-width:0;overflow-wrap:anywhere}.fa-episode button{flex-shrink:0}
+.fa-panel [hidden]{display:none!important}.fa-panel ::selection{background:#dfb476;color:#201b15}.fa-panel{scrollbar-color:#706251 transparent}.fa-panel input{caret-color:var(--accent,#dfb476)}
+`;
+function FlymesPanel({ ctx: ctx2, initialView = "native" }) {
+  const [view, setView] = (0, import_react.useState)(initialView);
+  return (0, import_react.createElement)(
+    "div",
+    { style: { height: "100%", minHeight: 0 } },
+    (0, import_react.createElement)("style", null, CSS + ARENA_CSS),
+    (0, import_react.createElement)("nav", { className: "fm-nav", "aria-label": "Flymes modes" }, [["native", "Hermes task"], ["arena", "Arena"], ["demo", "Built-in demo"]].map(([key, label]) => (0, import_react.createElement)("button", { key, type: "button", "aria-pressed": view === key, onClick: () => setView(key) }, label))),
+    view === "arena" ? (0, import_react.createElement)(ArenaPanel, { ctx: ctx2 }) : view === "demo" ? (0, import_react.createElement)(DemoPanel, { ctx: ctx2 }) : (0, import_react.createElement)(NativePanel, { ctx: ctx2 })
+  );
 }
 
 // desktop/harness.jsx

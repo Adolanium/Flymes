@@ -1,6 +1,6 @@
 name: flymes
-version: 0.2.0
-description: Experimental connectome controller for Hermes tool selection
+version: 0.3.0
+description: Experimental connectome tool selection and foraging arena
 author: Adolanium
 provides_tools:
   - flymes_choose

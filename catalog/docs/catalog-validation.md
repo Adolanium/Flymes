@@ -1,5 +1,22 @@
 # Local catalog validation
 
+## Arena development, version 0.3.0
+
+The arena adds no Agent tools or hooks. Its authenticated companion routes use
+the existing gateway proxy. The catalog package includes the arena runtime and
+Desktop artifact; developer browser harnesses remain outside the package.
+
+The updated regression suite passes 68 Python tests and six Desktop tests.
+A browser test against an isolated real companion passes live run, pause/resume,
+paired comparisons, report export, replay save/import, and 440/360-pixel layouts.
+No provider is called. A separate 18-episode pilot used the full MaleCNS graph;
+see [arena results](arena-results.md) for outcomes and limitations.
+The rebuilt 0.3.0 package also passes Hermes capability validation, isolated Agent
+loading, repeat setup, and the package scanner with a SAFE verdict. Medium scanner
+notes remain for documented local HTTP and fixed subprocess operations.
+
+## Earlier packaging validation, version 0.2.0
+
 Validated on Windows on 2026-09-16 against Hermes 0.21.3 source at
 `b4b554937e758209b703887d9b373ccae3aa2852`.
 The reused interpreter's installed distribution metadata reports 0.21.1;

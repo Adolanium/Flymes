@@ -10,6 +10,7 @@ import secrets
 import shutil
 import subprocess
 import sys
+import time
 import urllib.request
 
 from flymes.runner import atomic_json
@@ -153,7 +154,7 @@ async def run_demo(dataset, mode, steps):
 
 def main():
     parser = argparse.ArgumentParser(description="Flymes connectome experiment commands")
-    parser.add_argument("command", choices=["prepare-data", "doctor", "install", "serve", "run-demo", "run-controls", "state", "stop", "export"])
+    parser.add_argument("command", choices=["prepare-data", "doctor", "install", "serve", "run-demo", "run-controls", "state", "stop", "export", "arena"])
     parser.add_argument("--dataset", type=Path, default=state_root()/"data/malecns-v1/prepared-full")
     parser.add_argument("--cache", type=Path, default=state_root()/"data/malecns-v1")
     parser.add_argument("--max-neurons", type=int)
@@ -161,10 +162,39 @@ def main():
     parser.add_argument("--mode", choices=["REAL", "SHUFFLED", "SILENCED", "HEURISTIC", "LESIONED"], default="REAL")
     parser.add_argument("--steps", type=int, default=18)
     parser.add_argument("--run", type=Path)
+    parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument("--circuit-seed", type=int, default=7)
+    parser.add_argument("--seeds", type=int, default=3)
+    parser.add_argument("--arena-modes", nargs='+', choices=['REAL', 'SHUFFLED', 'SILENCED', 'LESIONED', 'GREEDY', 'RANDOM'],
+                        default=['REAL', 'SHUFFLED', 'SILENCED', 'LESIONED', 'GREEDY', 'RANDOM'])
+    parser.add_argument("--lesion-percent", type=int, default=30)
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535:
         parser.error("--port must be between 1024 and 65535")
-    if args.command == "prepare-data":
+    if args.command == 'arena':
+        from flymes.arena import Arena
+        from flymes.server import ArenaCommand
+        async def experiment():
+            arena = Arena(args.dataset, state_root() / '.flymes' / 'arena')
+            await arena.control(ArenaCommand(command='compare', modes=args.arena_modes, seed=args.seed,
+                                            seeds=args.seeds, max_steps=args.steps, lesion_percent=args.lesion_percent,
+                                            circuit_seed=args.circuit_seed))
+            try:
+                previous = -1
+                while not arena.task.done():
+                    arena.lease = time.monotonic()
+                    if arena.state['progress'] != previous:
+                        previous = arena.state['progress']
+                        print(f"Arena: {previous}/{arena.state['total']} episodes", file=sys.stderr, flush=True)
+                    await asyncio.sleep(.2)
+                await arena.task
+            finally:
+                await arena.close()
+            print(json.dumps(arena.report, indent=2))
+            if arena.state['status'] != 'completed':
+                raise SystemExit(1)
+        asyncio.run(experiment())
+    elif args.command == "prepare-data":
         from flymes.data import prepare_data
         print(prepare_data(args.cache, max_neurons=args.max_neurons))
     elif args.command == "install":

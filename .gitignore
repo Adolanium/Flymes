@@ -10,6 +10,8 @@ node_modules/
 build/
 dist/
 desktop/harness.bundle.js
+desktop/arena-harness.bundle.js
+desktop/review/arena-*.png
 desktop/review/motion-video/
 service.json
 native-gate.json
