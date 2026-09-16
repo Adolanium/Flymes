@@ -11,9 +11,10 @@ import pytest
 @pytest.mark.skipif(os.environ.get("FLYMES_LIVE_TEST") != "1", reason="Set FLYMES_LIVE_TEST=1 to spend configured Hermes model usage")
 def test_real_controller_dispatch():
     from flymes.runner import Runner
+    from flymes.paths import state_root
     root = Path(__file__).parents[1]
     async def run():
-        engine = Runner(root, root/"data/malecns-v1/prepared-full", max_steps=18)
+        engine = Runner(root, state_root()/"data/malecns-v1/prepared-full", max_steps=18, state_root=state_root())
         await engine.start()
         await engine.control("step")
         await engine.task

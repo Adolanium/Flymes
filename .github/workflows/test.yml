@@ -12,3 +12,4 @@ jobs:
         with:
           node-version: '22'
       - run: node --test desktop/plugin.test.mjs
+      - run: uv run python scripts/build_catalog.py --check

@@ -1,0 +1,21 @@
+# Local preparation only. Replace this placeholder with the reviewed release commit.
+name: flymes
+repo: https://github.com/Adolanium/Flymes
+sha: RELEASE_COMMIT_SHA
+subdir: catalog
+description: Experimental connectome controller for Hermes tool selection, with a local companion and Desktop panel.
+maintainer: Adolanium
+tier: community
+category: desktop
+docs_url: https://github.com/Adolanium/Flymes#install
+platforms:
+  - windows
+capabilities:
+  provides_tools:
+    - flymes_choose
+  provides_hooks:
+    - pre_llm_call
+    - pre_tool_call
+    - post_tool_call
+  provides_middleware: []
+  requires_env: []

@@ -1,0 +1,11 @@
+{
+  "requests": 10,
+  "status": "stopped",
+  "step": 1,
+  "snapshot_bytes_compact_json": 30049,
+  "polling_interval_seconds": 1,
+  "median_transport_and_decode_ms": 27.289050005492754,
+  "max_transport_and_decode_ms": 47.44550000759773,
+  "render_samples": 320,
+  "note": "Local companion HTTP plus JSON decode; excludes Hermes proxy and renderer. This polling does not advance neural time."
+}

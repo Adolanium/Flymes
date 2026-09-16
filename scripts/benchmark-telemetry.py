@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from flymes.cli import rpc
 from flymes.runner import atomic_json
+from flymes.paths import state_root
 
 latencies = []
 for _ in range(10):
@@ -22,5 +23,5 @@ report = {'requests':10, 'status':state['status'], 'step':state['step'],
           'max_transport_and_decode_ms':max(latencies),
           'render_samples':len(state.get('decision',{}).get('sample',[])),
           'note':'Local companion HTTP plus JSON decode; excludes Hermes proxy and renderer. This polling does not advance neural time.'}
-atomic_json(ROOT/'artifacts/telemetry-benchmark.json',report)
+atomic_json(state_root()/'artifacts/telemetry-benchmark.json',report)
 print(json.dumps(report,indent=2))

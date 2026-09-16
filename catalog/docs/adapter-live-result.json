@@ -1,0 +1,141 @@
+[
+  {
+    "action": "TEST",
+    "run_id": "adapter-live-proof",
+    "step_id": 0,
+    "session_id": "flymes",
+    "status": "ok",
+    "operations": [
+      {
+        "operation": "approved_test",
+        "result": {
+          "passed": 3,
+          "failed": 2,
+          "failures": [
+            {
+              "case": 0,
+              "error": "expected ['Apple', 'APRICOT'], got []"
+            },
+            {
+              "case": 1,
+              "error": "expected ['banana'], got []"
+            }
+          ],
+          "exit_code": 1,
+          "verified": false,
+          "duration_s": 0.10999999998603016,
+          "verifier_sha256": "4d8a7189ed41257e9344e4d5d9e66742d6d04b42f8035186cea74941ee2b2c3f"
+        }
+      }
+    ],
+    "model_calls": 0,
+    "provider": null,
+    "model": null,
+    "usage": {},
+    "verified": false,
+    "passed": 3,
+    "failed": 2,
+    "failures": [
+      {
+        "case": 0,
+        "error": "expected ['Apple', 'APRICOT'], got []"
+      },
+      {
+        "case": 1,
+        "error": "expected ['banana'], got []"
+      }
+    ],
+    "exit_code": 1,
+    "duration_s": 0.10999999998603016,
+    "verifier_sha256": "4d8a7189ed41257e9344e4d5d9e66742d6d04b42f8035186cea74941ee2b2c3f",
+    "diff": ""
+  },
+  {
+    "action": "IMPLEMENT",
+    "run_id": "adapter-live-proof",
+    "step_id": 1,
+    "session_id": "flymes",
+    "status": "ok",
+    "operations": [
+      {
+        "operation": "read",
+        "request": {
+          "operation": "read",
+          "path": "app.py",
+          "query": "",
+          "content": "",
+          "expected_sha256": "",
+          "summary": "Read app.py to get current hash and content"
+        },
+        "result": {
+          "path": "app.py",
+          "content": "\"\"\"Intentionally faulty demo fixture. Search is supposed to ignore letter case.\"\"\"\n\n\ndef visible_items(items, query):\n    return [item for item in items if query in item]\n",
+          "sha256": "36cbd240b06f1567c11eb53a91303f995c7fe1fc84f4702266a7e5188082c065"
+        }
+      },
+      {
+        "operation": "replace",
+        "request": {
+          "operation": "replace",
+          "path": "app.py",
+          "query": "",
+          "content": "\"\"\"Intentionally faulty demo fixture. Search is supposed to ignore letter case.\"\"\"\n\n\ndef visible_items(items, query):\n    return [item for item in items if query.lower() in item.lower()]\n",
+          "expected_sha256": "36cbd240b06f1567c11eb53a91303f995c7fe1fc84f4702266a7e5188082c065",
+          "summary": "Make visible_items case-insensitive by lowercasing query and item in comprehension."
+        },
+        "result": {
+          "path": "app.py",
+          "changed": true,
+          "bytes": 187,
+          "sha256": "d67de0e5f6764206dc63637124ddbbc85465d1b2510c9eb5ccc09eec383c51a8"
+        }
+      }
+    ],
+    "model_calls": 2,
+    "provider": "nous",
+    "model": "deepseek/deepseek-v4.1-flash",
+    "usage": {
+      "input_tokens": 1736,
+      "output_tokens": 967,
+      "total_tokens": 2703,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "verified": false,
+    "duration_s": 23.703000000008615,
+    "diff": "--- app.py\n+++ app.py\n@@ -2,4 +2,4 @@\n \n \n def visible_items(items, query):\n-    return [item for item in items if query in item]\n+    return [item for item in items if query.lower() in item.lower()]\n"
+  },
+  {
+    "action": "FINISH",
+    "run_id": "adapter-live-proof",
+    "step_id": 2,
+    "session_id": "flymes",
+    "status": "ok",
+    "operations": [
+      {
+        "operation": "approved_test",
+        "result": {
+          "passed": 5,
+          "failed": 0,
+          "failures": [],
+          "exit_code": 0,
+          "verified": true,
+          "duration_s": 0.15600000001722947,
+          "verifier_sha256": "4d8a7189ed41257e9344e4d5d9e66742d6d04b42f8035186cea74941ee2b2c3f"
+        }
+      }
+    ],
+    "model_calls": 0,
+    "provider": null,
+    "model": null,
+    "usage": {},
+    "verified": true,
+    "passed": 5,
+    "failed": 0,
+    "failures": [],
+    "exit_code": 0,
+    "duration_s": 0.15600000001722947,
+    "verifier_sha256": "4d8a7189ed41257e9344e4d5d9e66742d6d04b42f8035186cea74941ee2b2c3f",
+    "diff": "--- app.py\n+++ app.py\n@@ -2,4 +2,4 @@\n \n \n def visible_items(items, query):\n-    return [item for item in items if query in item]\n+    return [item for item in items if query.lower() in item.lower()]\n"
+  }
+]

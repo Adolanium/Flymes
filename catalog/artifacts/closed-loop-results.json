@@ -1,0 +1,149 @@
+{
+  "kind": "exploratory closed-loop comparisons, one run per mode; not a statistical evaluation",
+  "seed": 7,
+  "fixture": "case-insensitive shopping-list filter",
+  "lesioned_percent": 30,
+  "runs": [
+    {
+      "run_id": "00a22308393d4eb98ed3dd67b08c0cde",
+      "mode": "REAL",
+      "status": "stopped",
+      "actions": [
+        "INSPECT",
+        "FINISH",
+        "TEST",
+        "TEST",
+        "TEST",
+        "TEST"
+      ],
+      "steps": 6,
+      "budget": {
+        "max_steps": 6,
+        "runtime_s": 900
+      },
+      "model": "nous / deepseek/deepseek-v4.1-flash",
+      "passed": 3,
+      "failed": 2,
+      "independently_completed": false,
+      "model_calls": 1,
+      "reported_tokens": 673,
+      "worker_seconds": 29.126000000047497,
+      "wall_seconds": 34.98399999999674,
+      "safety_overrides": [
+        "run budget exhausted"
+      ]
+    },
+    {
+      "run_id": "f2e4335e57d944db9ebcb47f61c98fcb",
+      "mode": "HEURISTIC",
+      "status": "completed",
+      "actions": [
+        "INSPECT",
+        "IMPLEMENT",
+        "TEST",
+        "FINISH"
+      ],
+      "steps": 4,
+      "budget": {
+        "max_steps": 6,
+        "runtime_s": 900
+      },
+      "model": "nous / deepseek/deepseek-v4.1-flash",
+      "passed": 5,
+      "failed": 0,
+      "independently_completed": true,
+      "model_calls": 3,
+      "reported_tokens": 2999,
+      "worker_seconds": 110.81300000002375,
+      "wall_seconds": 111.84399999998277,
+      "safety_overrides": []
+    },
+    {
+      "run_id": "aa4def135a9a4f85b58d1f81f1dbbf22",
+      "mode": "SHUFFLED",
+      "status": "stopped",
+      "actions": [
+        "INSPECT",
+        "INSPECT",
+        "INSPECT",
+        "FINISH",
+        "TEST",
+        "TEST"
+      ],
+      "steps": 6,
+      "budget": {
+        "max_steps": 6,
+        "runtime_s": 900
+      },
+      "model": "nous / deepseek/deepseek-v4.1-flash",
+      "passed": 3,
+      "failed": 2,
+      "independently_completed": false,
+      "model_calls": 3,
+      "reported_tokens": 2037,
+      "worker_seconds": 52.09299999996438,
+      "wall_seconds": 60.84399999998277,
+      "safety_overrides": [
+        "run budget exhausted"
+      ]
+    },
+    {
+      "run_id": "42132a9d533c45ea96f313545ef1b83b",
+      "mode": "SILENCED",
+      "status": "stopped",
+      "actions": [
+        "INSPECT",
+        "FINISH",
+        "TEST",
+        "TEST",
+        "TEST",
+        "TEST"
+      ],
+      "steps": 6,
+      "budget": {
+        "max_steps": 6,
+        "runtime_s": 900
+      },
+      "model": "nous / deepseek/deepseek-v4.1-flash",
+      "passed": 3,
+      "failed": 2,
+      "independently_completed": false,
+      "model_calls": 1,
+      "reported_tokens": 648,
+      "worker_seconds": 20.85999999998603,
+      "wall_seconds": 22.530999999988126,
+      "safety_overrides": [
+        "run budget exhausted"
+      ]
+    },
+    {
+      "run_id": "3c123b8e2bdc4e9b95f7649881f1c0ab",
+      "mode": "LESIONED",
+      "status": "stopped",
+      "actions": [
+        "TEST",
+        "TEST",
+        "TEST",
+        "TEST",
+        "TEST",
+        "TEST"
+      ],
+      "steps": 6,
+      "budget": {
+        "max_steps": 6,
+        "runtime_s": 900
+      },
+      "model": "Hermes configured provider",
+      "passed": 3,
+      "failed": 2,
+      "independently_completed": false,
+      "model_calls": 0,
+      "reported_tokens": 0,
+      "worker_seconds": 0.625,
+      "wall_seconds": 7.062999999994645,
+      "safety_overrides": [
+        "run budget exhausted"
+      ]
+    }
+  ]
+}

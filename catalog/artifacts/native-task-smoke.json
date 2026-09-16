@@ -1,0 +1,104 @@
+{
+  "session_id": "flymes-native-smoke-7cac7d12fc",
+  "mode": "REAL",
+  "api_calls": 9,
+  "native_tool_calls": [
+    "tool_describe",
+    "tool_call",
+    "tool_call",
+    "terminal",
+    "tool_call",
+    "patch",
+    "tool_call",
+    "terminal"
+  ],
+  "controller_step": 3,
+  "events": [
+    {
+      "event": "decision",
+      "step": 1,
+      "decision_id": "673d4e63ec1e41e9abddc634dd3d71ee",
+      "mode": "REAL",
+      "action": "TEST",
+      "observation": {}
+    },
+    {
+      "event": "result",
+      "step": 1,
+      "decision_id": "673d4e63ec1e41e9abddc634dd3d71ee",
+      "status": "ok",
+      "result_sha256": "939071b3334f6a4b0d163f7063deafa2c5186c794269a75750dc53a5b4780666",
+      "observation": {
+        "elapsed_steps": 1,
+        "repeated_actions": 0,
+        "last_exit_code": 0
+      }
+    },
+    {
+      "event": "decision",
+      "step": 2,
+      "decision_id": "f682b6b123334b2e98ce163071b4e063",
+      "mode": "REAL",
+      "action": "IMPLEMENT",
+      "observation": {
+        "elapsed_steps": 1,
+        "repeated_actions": 0,
+        "last_exit_code": 0
+      }
+    },
+    {
+      "event": "result",
+      "step": 2,
+      "decision_id": "f682b6b123334b2e98ce163071b4e063",
+      "status": "ok",
+      "result_sha256": "7ef1099badefabde846a6881165b2fad10fe3303196f8db2a5c0636c8dbb435c",
+      "observation": {
+        "elapsed_steps": 2,
+        "repeated_actions": 0
+      }
+    },
+    {
+      "event": "decision",
+      "step": 3,
+      "decision_id": "8f804f981b27440a9b73c12c815c979d",
+      "mode": "REAL",
+      "action": "TEST",
+      "observation": {
+        "elapsed_steps": 2,
+        "repeated_actions": 0
+      }
+    },
+    {
+      "event": "result",
+      "step": 3,
+      "decision_id": "8f804f981b27440a9b73c12c815c979d",
+      "status": "ok",
+      "result_sha256": "a7408b8909fbb02aa2b07f834dd70f8b20eb9f48a2aff03c77401dbb26d0a301",
+      "observation": {
+        "elapsed_steps": 3,
+        "repeated_actions": 0,
+        "last_exit_code": 0
+      }
+    }
+  ],
+  "final_response": "Done.\n\n- **Fix:** `calculator.py` line 2 changed `return a - b` → `return a + b` (patch diff confirmed, lint ok).\n- **Verified (real run):** `python -c ... calculator.add(2,3)` → `add(2,3)= 5 PASS`.\n\nFlymes chose a balanced path, not repeated inspection: step 1 TEST (reproduce → `-1`), step 2 IMPLEMENT (patch), step 3 TEST (verify → `5 PASS`).",
+  "source": "def add(a, b):\n    return a + b\n",
+  "choice_comparison": [
+    {
+      "step": 1,
+      "hermes_preferred": "INSPECT",
+      "fly_selected": "TEST"
+    },
+    {
+      "step": 2,
+      "hermes_preferred": "INSPECT",
+      "fly_selected": "IMPLEMENT"
+    },
+    {
+      "step": 3,
+      "hermes_preferred": "TEST",
+      "fly_selected": "TEST"
+    }
+  ],
+  "note": "One small native integration smoke test, not evidence of general performance advantage. A release response was reset after acceptance; subsequent state confirmed released."
+}

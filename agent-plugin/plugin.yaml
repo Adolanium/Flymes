@@ -1,5 +1,0 @@
-name: flymes-worker
-version: 0.1.0
-description: Bounded structured completion transport for the Flymes companion
-provides_tools: []
-provides_hooks: []

@@ -58,6 +58,21 @@ def test_neural_selection_is_dispatched_and_logged(tmp_path):
     asyncio.run(run())
 
 
+def test_demo_records_live_outside_source_tree(tmp_path):
+    source, state = tmp_path / 'source', tmp_path / 'state'
+    runner = make_runner(source)
+    runner.state_root = state
+    async def run():
+        await runner.start()
+        assert runner.workspace.is_relative_to(state)
+        assert runner.outdir.is_relative_to(state)
+        assert not (source / '.flymes').exists()
+        assert not (source / 'demo/workspaces').exists()
+        assert (runner.workspace / 'app.py').is_file()
+        await runner.stop()
+    asyncio.run(run())
+
+
 def test_auth_origin_and_message_validation(tmp_path):
     runner = make_runner(tmp_path)
     app = create_app(tmp_path, tmp_path, "x"*48, runner)

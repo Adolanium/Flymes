@@ -29,6 +29,18 @@ def propose(ctrl, **kwargs):
     ], **kwargs)
 
 
+def test_native_records_live_outside_source_tree(tmp_path):
+    source, state = tmp_path / 'source', tmp_path / 'state'
+    source.mkdir()
+    graph = Connectome(sparse.eye(12, format='csr'), np.arange(12), {}, {})
+    ctrl = NativeController(source, tmp_path, lambda: Simulator(graph), state_root=state)
+    ctrl.handle({'command': 'enable', 'session_id': 'chat', 'workspace': str(source)})
+    propose(ctrl)
+    assert ctrl.run_path.is_relative_to(state)
+    assert (ctrl.run_path / 'decision-0001.json').is_file()
+    assert not (source / '.flymes').exists()
+
+
 def test_exact_one_shot_authorization_and_truthful_observation(controller):
     ctrl = controller
     choice = propose(ctrl, mode='HERMES', preferred_index=0)

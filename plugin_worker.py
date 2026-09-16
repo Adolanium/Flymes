@@ -1,4 +1,4 @@
-"""Native Hermes CLI completion transport. This plugin registers no agent tools."""
+"""Optional built-in demo transport, registered by the Flymes plugin."""
 import json
 import sys
 from dataclasses import asdict
